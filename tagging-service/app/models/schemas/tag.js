@@ -16,9 +16,10 @@ const tag = new Schema(
       index: true,
       required: true,
     },
+    isSystemTag: { type: Boolean, default: false },
     taggedObjectsCount: { type: Number, default: 0 },
   },
-  { collection: 'tag', timestamps: true },
+  { timestamps: true },
 );
 
 tag.index({ _id: 1, tagsGroupId: 1 });

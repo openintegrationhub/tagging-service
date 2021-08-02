@@ -55,9 +55,20 @@ const removeTemplateTaggedCollections = async (templateId) => {
   if (!collectionTagGroup) {
     collectionTagGroup = await storage.getTagsGroupBySlug('collections');
   }
+  // we get the current tagged objects before we remove them
+  const taggedObjects = await storage.getTaggedObjectsFromObject(
+    templateId,
+    collectionTagGroup.id,
+  );
   const removedTaggedObjects = await storage.removeTagsFromObject(
     templateId,
     collectionTagGroup.id,
+  );
+
+  // we decrease the counter of the deleted tags
+  await storage.increaseTaggedObjecsCount(
+    taggedObjects.map(({ tagId }) => tagId),
+    -1,
   );
 
   return removedTaggedObjects.deletedCount;

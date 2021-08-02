@@ -11,7 +11,7 @@ const buildQuery = (user, id) => {
   let findId;
   const qry = {};
   if (id) {
-    findId = mongoose.Types.ObjectId(id);
+    findId = ObjectId(id);
     qry._id = findId;
   }
 
@@ -57,7 +57,6 @@ const getTags = (
 ) =>
   new Promise((resolve) => {
     const query = {
-      tagsGroupId: ObjectId(tagsGroupId),
       ...buildQuery(user, null),
     };
 
@@ -71,7 +70,18 @@ const getTags = (
       [sortField]: sortOrder,
     };
 
-    Tag.find(query)
+    // we get all tags by tenant and all system tags
+    const orQuery = {
+      tagsGroupId: ObjectId(tagsGroupId),
+      $or: [
+        query,
+        {
+          isSystemTag: true,
+        },
+      ],
+    };
+
+    Tag.find(orQuery)
       .sort(sort)
       .lean()
       .then((doc) => {
@@ -207,12 +217,54 @@ const addTag = (storeTag) =>
       });
   });
 
+const getOneTag = async (user, id) => {
+  const query = buildQuery(user, id);
+  const tag = await Tag.findOne(query).lean();
+  return format(tag);
+};
+
+const removeTagsFromTagId = (tagId, tagsGroupId) =>
+  TaggedObject.deleteMany({
+    tagId,
+    tagsGroupId,
+  });
+
+const deleteTagWithTaggedObjects = async (user, id, tagsGroupId) => {
+  await removeTagsFromTagId(id, tagsGroupId);
+  const query = buildQuery(user, id);
+  const tag = await Tag.findOneAndDelete(query);
+  return format(tag);
+};
+
+const updateTag = async (user, id, payload) => {
+  const query = buildQuery(user, id);
+  const tag = await Tag.findOneAndUpdate(query, payload, {
+    new: true,
+  });
+  return format(tag);
+};
+
+const getTaggedObjectsFromObject = (objectId, tagsGroupId) => {
+  const query = {
+    objectId,
+  };
+  if (tagsGroupId) {
+    query.tagsGroupId = tagsGroupId;
+  }
+  return TaggedObject.find(query);
+};
+
 module.exports = {
+  getOneTag,
   getTags,
   getTagsGroupBySlug,
   getTaggedObjectsByTagsGroup,
   validateTagsIds,
   upsertTaggedObjects,
   addTag,
-  removeTagsFromObject
+  removeTagsFromObject,
+  deleteTagWithTaggedObjects,
+  updateTag,
+  getTaggedObjectsFromObject,
+  increaseTaggedObjecsCount,
 };

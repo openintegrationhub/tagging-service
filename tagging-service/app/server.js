@@ -101,7 +101,9 @@ class Server {
     }); */
 
     // Error handling
-    this.app.use((err, req, res) =>
+    // fourth argument should be here
+    // eslint-disable-next-line no-unused-vars
+    this.app.use((err, _, res, __) =>
       res.status(err.status || 500).send({
         errors: [
           {
@@ -152,7 +154,6 @@ class Server {
       appRoot: __dirname, // required config
 
       // This is just here to stop Swagger from complaining, without actual functionality
-
       swaggerSecurityHandlers: {
         Bearer: function (req, authOrSecDef, scopesOrApiKey, cb) {
           if (true) {
