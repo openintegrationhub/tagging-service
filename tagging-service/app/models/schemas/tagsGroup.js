@@ -25,7 +25,7 @@ const tagsGroup = new Schema(
       default: CONSTANTS.TAGS_GROUP_TYPE.SIMPLE,
     },
   },
-  { collection: 'tagsGroup', timestamps: true },
+  { timestamps: true },
 );
 
 module.exports.tagsGroup = tagsGroup;

@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "description": "This is the API for the Open Integration Hub Microservice \"Flow Templates\"\n[http://openintegrationhub.org](http://openintegrationhub.org)\n",
+    "description": "This is the API for the Open Integration Hub Microservice \"Tagging Service\"\n[http://openintegrationhub.org](http://openintegrationhub.org)\n",
     "version": "0.0.1",
-    "title": "Template Repository",
+    "title": "Tagging Service",
     "termsOfService": "http://openintegrationhub.org/terms/",
     "contact": {
       "email": "james.weber@cloudecosystem.org"
@@ -15,8 +15,8 @@
   },
   "tags": [
     {
-      "name": "templates",
-      "description": "Flow Templates",
+      "name": "tagging",
+      "description": "Tagging Service",
       "externalDocs": {
         "description": "Find out more",
         "url": "http://openintegrationhub.org"

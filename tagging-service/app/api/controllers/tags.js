@@ -35,7 +35,7 @@ router.get(
   jsonParser,
   can(config.taggingReadPermission),
   async (req, res) => {
-    const { user, query, tagsGroup } = req;
+    const { query, tagsGroup, user } = req;
     const hasTaggedObjects = query.hasTaggedObjects === 'true';
     const tags = await storage.getTags(user, tagsGroup.id, hasTaggedObjects);
     res.status(200).send(tags);
@@ -56,6 +56,10 @@ router.post(
     }
     if (newTag.owners.findIndex((o) => o.id === req.user.sub) === -1) {
       newTag.owners.push({ id: req.user.sub, type: 'user' });
+      // just for admins that couldn't have the tenant field
+      if (req.user.tenant) {
+        newTag.owners.push({ id: req.user.tenant, type: 'tenant' });
+      }
     }
     const tagsGroupId = req.tagsGroup.id;
 
@@ -76,6 +80,95 @@ router.post(
     } catch (err) {
       log.error(err);
       return res.status(500).send({ errors: [{ message: err }] });
+    }
+  },
+);
+
+// update the tag field
+router.patch(
+  '/:tagsGroupSlug/:id',
+  jsonParser,
+  can(config.taggingWritePermission),
+  async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      if (!ObjectId.isValid(id)) {
+        return res
+          .status(400)
+          .send({ errors: [{ message: 'Invalid id', code: 400 }] });
+      }
+
+      const tag = await storage.getOneTag(req.user, req.params.id);
+
+      if (!tag) {
+        return res
+          .status(404)
+          .send({ errors: [{ message: 'No tag found', code: 404 }] });
+      }
+      const updatedTag = { ...tag, ...req.body };
+      updatedTag._id = updatedTag.id;
+      delete updatedTag.id;
+
+      if (!updatedTag.owners) {
+        updatedTag.owners = [];
+      }
+      if (updatedTag.owners.findIndex((o) => o.id === req.user.sub) === -1) {
+        updatedTag.owners.push({ id: req.user.sub, type: 'user' });
+        // just for admins that couldn't have the tenant field
+        if (req.user.tenant) {
+          updatedTag.owners.push({ id: req.user.tenant, type: 'tenant' });
+        }
+      }
+
+      const newTag = new Tag(updatedTag);
+      const errors = validate(newTag);
+
+      if (errors && errors.length > 0) {
+        return res.status(400).send({ errors });
+      }
+
+      const result = await storage.updateTag(req.user, id, updatedTag);
+      res.status(200).send(result);
+    } catch (e) {
+      log.error(e);
+      if (!res.headersSent) {
+        return res.status(500).send(e);
+      }
+    }
+  },
+);
+
+router.delete(
+  '/:tagsGroupSlug/:id',
+  jsonParser,
+  can(config.taggingWritePermission),
+  async (req, res) => {
+    const { id } = req.params;
+    const tagsGroupId = req.tagsGroup.id;
+
+    try {
+      if (!ObjectId.isValid(id)) {
+        return res
+          .status(400)
+          .send({ errors: [{ message: 'Invalid id', code: 400 }] });
+      }
+
+      const tag = await storage.getOneTag(req.user, req.params.id);
+
+      if (!tag) {
+        return res
+          .status(404)
+          .send({ errors: [{ message: 'No tag found', code: 404 }] });
+      }
+      await storage.deleteTagWithTaggedObjects(req.user, id, tagsGroupId);
+
+      res.status(200).send('Deletion successful');
+    } catch (e) {
+      log.error(e);
+      if (!res.headersSent) {
+        return res.status(500).send(e);
+      }
     }
   },
 );

@@ -101,7 +101,9 @@ class Server {
     }); */
 
     // Error handling
-    this.app.use((err, req, res) =>
+    // fourth argument should be here
+    // eslint-disable-next-line no-unused-vars
+    this.app.use((err, _, res, __) =>
       res.status(err.status || 500).send({
         errors: [
           {
@@ -126,8 +128,8 @@ class Server {
       connectTimeoutMS: 30000,
       reconnectInterval: 1000,
       reconnectTries: Number.MAX_VALUE,
-      useNewUrlParser: true,
-    }; //
+      useNewUrlParser: true
+   }; //
 
     // Will connect to the mongo container by default, but to localhost if testing is active
     mongoose.connect(config.mongoUrl, options);

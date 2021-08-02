@@ -397,6 +397,17 @@ describe('Tags Operations', () => {
     expect(taggedObject.objectId).toBe(secondTaggedObjectId.toHexString());
     expect(taggedObject.tagsIds).toHaveLength(2);
   });
+
+  test('should delete a tag and its taggedObjects', async () => {
+    const res = await request
+      .delete(`/tags/${tagsGroupSlug}/${tag2}`)
+      .set('Authorization', 'Bearer permitToken');
+
+    expect(res.status).toEqual(200);
+
+    const tag3Db = await Tag.findById(tag3);
+    expect(tag3Db.taggedObjectsCount).toBe(1);
+  });
 });
 
 describe('removeTemplateTaggedCollections Handler', () => {
@@ -404,10 +415,12 @@ describe('removeTemplateTaggedCollections Handler', () => {
     const deletedElements = await removeTemplateTaggedCollections(
       secondTaggedObjectId,
     );
-    expect(deletedElements).toBe(2);
+    expect(deletedElements).toBe(1);
     const taggedObjects = await TaggedObject.find({
       objectId: secondTaggedObjectId,
     });
     expect(taggedObjects).toHaveLength(0);
+    const tag3Db = await Tag.findById(tag3);
+    expect(tag3Db.taggedObjectsCount).toBe(0);
   });
 });

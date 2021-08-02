@@ -1,5 +1,7 @@
 const config = require('../../app/config');
 
+const tenantId = '';
+
 module.exports = {
   adminToken: {
     token: 'adminToken',
@@ -18,7 +20,7 @@ module.exports = {
       sub: 'TestGuest',
       username: 'guest@example.com',
       permissions: ['templates.read', 'templates.write'],
-      tenant: 'testTenant1',
+      tenant: tenantId,
       iat: 1337,
       aud: 'Test_Audience',
       iss: 'Test_Issuer',
@@ -35,7 +37,7 @@ module.exports = {
         config.taggingReadPermission,
         config.taggingWritePermission,
       ],
-      tenant: 'testTenant1',
+      tenant: tenantId,
       iat: 1337,
     },
   },
@@ -45,7 +47,7 @@ module.exports = {
     value: {
       sub: 'UnpermitGuy',
       username: 'guest@example.com',
-      tenant: 'testTenant1',
+      tenant: tenantId,
       permissions: ['müsli.riegel', 'schoko.riegel'],
       iat: 1337,
     },
@@ -56,7 +58,7 @@ module.exports = {
     value: {
       sub: 'PartpermitGuy',
       username: 'guest@example.com',
-      tenant: 'testTenant1',
+      tenant: tenantId,
       permissions: ['flows.read', 'templates.read', 'schoko.riegel'],
       iat: 1337,
     },
