@@ -128,8 +128,8 @@ class Server {
       connectTimeoutMS: 30000,
       reconnectInterval: 1000,
       reconnectTries: Number.MAX_VALUE,
-      useNewUrlParser: true
-   }; //
+      useNewUrlParser: true,
+    }; //
 
     // Will connect to the mongo container by default, but to localhost if testing is active
     mongoose.connect(config.mongoUrl, options);
@@ -154,7 +154,6 @@ class Server {
       appRoot: __dirname, // required config
 
       // This is just here to stop Swagger from complaining, without actual functionality
-
       swaggerSecurityHandlers: {
         Bearer: function (req, authOrSecDef, scopesOrApiKey, cb) {
           if (true) {
