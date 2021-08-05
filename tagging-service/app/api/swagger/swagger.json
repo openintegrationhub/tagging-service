@@ -16,432 +16,37 @@
   "tags": [
     {
       "name": "tagging",
-      "description": "Tagging Service",
-      "externalDocs": {
-        "description": "Find out more",
-        "url": "http://openintegrationhub.org"
-      }
+      "description": "Tagging Service"
     }
   ],
   "paths": {
-    "/templates": {
-      "get": {
-        "x-swagger-router-controller": "flowTemplate",
-        "security": [
-          {
-            "Bearer": [
-
-            ]
-          }
-        ],
-        "tags": [
-          "templates"
-        ],
-        "summary": "Retrieve all flow templates associated with the current user from the repository",
-        "description": "This will only return Flow Templates that are either directly associated with the user, or that are associated with a tenant that the user is also a member of. Requires the 'flowTemplates.read' permissions.",
-        "operationId": "getFlowTemplates",
-        "parameters": [
-          {
-          "name": "page[size]",
-          "in": "query",
-          "description": "Number of flow templates per page returned. Default is 10.",
-          "required": false,
-          "schema": {
-            "type": "integer"
-            }
-          },
-          {
-          "name": "page[number]",
-          "in": "query",
-          "description": "Number of the page to be returned. Default is 1.",
-          "required": false,
-          "schema": {
-            "type": "integer"
-            }
-          },
-          {
-          "name": "filter[status]",
-          "in": "query",
-          "description": "Filter results by flow status. Published = 1. Draft = 0",
-          "required": false,
-          "schema": {
-            "type": "integer"
-            }
-          },
-          {
-          "name": "filter[user]",
-          "in": "query",
-          "description": "Filter by user. Works for admin or users with same tenant.",
-          "required": false,
+    "/tags/{tagsGroupSlug}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "tagsGroupSlug",
           "schema": {
             "type": "string"
-            }
           },
-          {
-          "name": "sort",
-          "in": "query",
-          "description": "Sort the result by one property. Supported: createdAt, updatedAt and name. Prefix field name with - for reversed sort order (DESC) i.e. sort=-updatedAt. Default sorting is by id ASC",
-          "required": false,
-          "schema": {
-            "type": "string"
-            }
-          },
-          {
-          "name": "search",
-          "in": "query",
-          "description": "Search flows by a word or a phrase contained in the template description OR in the template name (case-insensitive). Behavior is similar to operator LIKE in SQL but case insensitive.",
-          "required": false,
-          "schema": {
-            "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A list of flow templates.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": { "$ref": "#/components/schemas/FlowTemplate" }
-                    },
-                    "meta": { "$ref": "#/components/schemas/Meta" }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No flows templates associated with the current user could be found in the repository."
-          }
+          "required": true
         }
-      },
-      "post": {
-        "x-swagger-router-controller": "flowTemplate",
+      ],
+      "get": {
+        "x-swagger-router-controller": "tags",
         "security": [
           {
             "Bearer": []
           }
         ],
         "tags": [
-          "templates"
+          "tagging"
         ],
-        "summary": "Add a new flow to the repository",
-        "description": "This requires the 'flowTemplates.write' permissions. The new Flow Template will automatically be associated with the current user in the owners array, allowing editing and viewing by this user irrespective of tenancies.",
-        "operationId": "addFlowTemplate",
-        "responses": {
-          "201": {
-            "description": "The created Flow Template.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {"$ref": "#/components/schemas/FlowTemplate"},
-                    "meta": {"type": "object"}
-                  }
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MutableFlowTemplate"
-              }
-            }
-          },
-          "description": "A Flow Template object to be added to the repository.",
-          "required": true
-        }
-      }
-    },
-    "/templates/{id}": {
-      "get": {
-        "x-swagger-router-controller": "flowTemplate",
-        "security": [
-          {
-            "Bearer": [
-
-            ]
-          }
-        ],
-        "tags": [
-          "templates"
-        ],
-        "summary": "Find Flow Template by ID",
-        "description": "Returns a single Flow Template by its ID, if the user is authorized to see it. This requires the 'flowTemplates.read' permission",
-        "operationId": "getFlowTemplateById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of flow template to return",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          }
-        ],
+        "summary": "Get all tags by tagsGroupId",
+        "description": "This requires the 'tagging.read' permissions. You get all tags filter by tagsGroup,owner or a system tag",
+        "operationId": "getTagsByTagsGroup",
         "responses": {
           "200": {
-            "description": "Returns the flow template",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": { "$ref": "#/components/schemas/FlowTemplate" },
-                    "meta": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No Flow with this id was found."
-          }
-        }
-      },
-      "delete": {
-        "x-swagger-router-controller": "flowTemplate",
-        "security": [
-          {
-            "Bearer": [
-
-            ]
-          }
-        ],
-        "tags": [
-          "templates"
-        ],
-        "summary": "Deletes a flow template",
-        "description": "Entirely deletes a Flow Template from the repository. This cannot be reverted. Requires the 'flowTemplates.write' permission.",
-        "operationId": "deleteFlowTemplate",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Flow Template id to delete",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Flow Template was successfully deleted"
-          },
-          "400": {
-            "description": "Invalid ID supplied"
-          },
-          "404": {
-            "description": "No Flow Template with this id was found."
-          },
-          "409": {
-            "description": "Flow Template is currently not draft. Only draft flows may be deleted."
-          }
-        }
-      },
-      "patch": {
-        "x-swagger-router-controller": "flowTemplate",
-        "security": [
-          {
-            "Bearer": [
-
-            ]
-          }
-        ],
-        "tags": [
-          "templates"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of flow template to update",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          }
-        ],
-        "summary": "Update an existing flow template",
-        "description": "The id is used to match the existing Flow Template that will be updated. Requires the 'flowTemplates.write' permission.",
-        "operationId": "updateFlowTemplate",
-        "responses": {
-          "200": {
-            "description": "The updated Flow Template.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {"$ref": "#/components/schemas/FlowTemplate"},
-                    "meta": {"type": "object"}
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Template not found"
-          },
-          "409": {
-            "description": "Flow Template is currently not draft. Only draft flow templates may be updated."
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MutableFlowTemplate"
-              }
-            }
-          },
-          "description": "Flow Template object containing the desired new values.",
-          "required": true
-        }
-      }
-    },
-    "/templates/{id}/generate": {
-      "post": {
-        "x-swagger-router-controller": "flowTemplate",
-        "security": [
-          {
-            "Bearer": [
-
-            ]
-          }
-        ],
-        "tags": [
-          "templates"
-        ],
-        "summary": "Generate a flow from the flow template",
-        "description": "Creates a flow based on the settings in the flow template. Requires the 'flows.write' permission.",
-        "operationId": "generateFlow",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of flow template to clone, must be a valid MongoDB ID.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns the id and status of the new flow",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "example": "5c99ec7e5ed40d3e7512cffa"
-                        },
-                        "status": {
-                          "type": "string",
-                          "example": "starting"
-                        }
-                      }
-                    },
-                    "meta": {"type": "object"}
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid ID format."
-          },
-          "403": {
-            "description": "User is not authorised to create flows."
-          },
-          "404": {
-            "description": "No Flow Template with this id was found."
-          },
-          "409": {
-            "description": "Flow Template is currently not published. Only published flow templates can be used to generate flows."
-          }
-        }
-      }
-    },
-    "/flows/{id}/steps/{step_id}/logs": {
-      "get": {
-        "security": [
-          {
-            "Bearer": [
-
-            ]
-          }
-        ],
-        "tags": [
-          "flows"
-        ],
-        "summary": "Get flow step's logs",
-        "description": "Returns logs produced by a certain step of the flow",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of flow, must be a valid MongoDB ID.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          },
-          {
-            "name": "step_id",
-            "in": "path",
-            "description": "ID of a step of a flow",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "description": "Number of log items to return.",
-            "required": false,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "pageToken",
-            "in": "query",
-            "description": "Token to get a certain page.",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns array of log items",
+            "description": "The tags from the tagsGroup",
             "content": {
               "application/json": {
                 "schema": {
@@ -450,43 +55,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "timestamp": {
-                            "type": "string",
-                            "example": "2019-11-08T11:53:17.497Z"
-                          },
-                          "message": {
-                            "oneOf": [
-                              {"type": "string"},
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "msg": {
-                                    "type": "string"
-                                  }
-                                }
-                              }
-                            ],
-                            "example": "Some logged string"
-                          }
-                        }
-                      }
-                    },
-                    "meta": {
-                      "type": "object",
-                      "properties": {
-                        "pageSize": {
-                          "type": "number",
-                          "description": "Number of log items per page",
-                          "default": 1000,
-                          "example": 1000
-                        },
-                        "nextPageToken": {
-                          "type": "string",
-                          "description": "Token for getting the next page",
-                          "example": "some-long-token"
-                        }
+                        "$ref": "#/components/schemas/Tag"
                       }
                     }
                   }
@@ -494,14 +63,284 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid ID format."
+          "404": {
+            "description": "No slug found"
+          }
+        }
+      },
+      "post": {
+        "x-swagger-router-controller": "tags",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "tagging"
+        ],
+        "summary": "Create a new tag for a tagsGroup",
+        "description": "This requires the 'tagging.write' permissions. Creates a new tag for a specific tagsGroup.",
+        "operationId": "createNewTag",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tag"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tagsGroupSlug",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The tag created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Tag"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
           },
-          "403": {
-            "description": "User is not authorised to get logs."
+          "400": {
+            "description": "Error creating the new tag"
           },
           "404": {
-            "description": "No Flow with this id was found."
+            "description": "No slug found"
+          },
+          "500": {
+            "description": "Error found saving in database"
+          }
+        }
+      }
+    },
+    "/tags/{tagsGroupSlug}/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "tagsGroupSlug",
+          "schema": {
+            "type": "string"
+          },
+          "required": true
+        },
+        {
+          "in": "path",
+          "name": "id",
+          "schema": {
+            "type": "string"
+          },
+          "required": true
+        }
+      ],
+      "patch": {
+        "x-swagger-router-controller": "tags",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "tagging"
+        ],
+        "summary": "Update fields from existent tag",
+        "description": "This requires the 'tagging.write' permissions. Update the required fields of a tag.",
+        "operationId": "patchTag",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Tag"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The tag created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Tag"
+                    },
+                    "meta": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id"
+          },
+          "404": {
+            "description": "No slug found"
+          },
+          "500": {
+            "description": "Error found saving in database"
+          }
+        }
+      },
+      "delete": {
+        "x-swagger-router-controller": "tags",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "tagging"
+        ],
+        "summary": "Delete an existent tag",
+        "description": "This requires the 'tagging.write' permissions. Delete the required tag.",
+        "operationId": "deleteTag",
+        "responses": {
+          "200": {
+            "description": "Deletion successful"
+          },
+          "400": {
+            "description": "Invalid id"
+          },
+          "404": {
+            "description": "No tag found"
+          },
+          "500": {
+            "description": "Error found saving in database"
+          }
+        }
+      }
+    },
+    "/tags/{tagsGroupSlug}/taggedObjects": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "tagsGroupSlug",
+          "schema": {
+            "type": "string"
+          },
+          "required": true
+        }
+      ],
+      "get": {
+        "x-swagger-router-controller": "tags",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "tagging"
+        ],
+        "summary": "Get all tags ids grouping by objectId",
+        "description": "This requires the 'tagging.read' permissions. You get all tagsIds of each object",
+        "operationId": "getTaggedObjectsByTag",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "objectId",
+            "schema": {
+              "type": "string"
+            },
+            "description": "This query field is for filtering by objectId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The tagsIds of each objectId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TaggedObjectResponse"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No slug found"
+          }
+        }
+      },
+      "post": {
+        "x-swagger-router-controller": "tags",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "tags": [
+          "tagging"
+        ],
+        "summary": "Create/update tagged objects for different tags",
+        "description": "This requires the 'tagging.write' permissions. Create or update tagged objects for specific tags.",
+        "operationId": "upsertTaggedObjects",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaggedObjectResponse"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upserted objects ids",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UpserTaggedObjectResponse"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not all tagsIds are valid"
+          },
+          "404": {
+            "description": "No tag found"
+          },
+          "500": {
+            "description": "Error found saving in database"
           }
         }
       }
@@ -599,13 +438,10 @@
     }
   },
   "externalDocs": {
-    "description": "Find out more about the Flow Templates",
-    "url": "https://github.com/openintegrationhub"
+    "description": "Find out more about the Tagging  Service",
+    "url": "https://github.com/openintegrationhub/CE-tagging-service"
   },
   "servers": [
-    {
-      "url": "http://template-repository.openintegrationhub.com/"
-    },
     {
       "url": "http://localhost:3001/"
     }
@@ -683,81 +519,51 @@
       }
     },
     "schemas": {
-      "MutableFlowTemplate": {
-        "type": "object",
-        "required": [
-          "name",
-          "graph",
-          "type"
-        ],
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "SnazzyToCodeComponent"
-          },
-          "description": {
-            "type": "string",
-            "example": "This flow polls for persons and posts them on webhoo.site."
-          },
-          "graph": {
-            "$ref": "#/components/schemas/FlowGraph"
-          },
-          "type": {
-            "type": "string",
-            "description": "Flow type",
-            "enum": [
-              "ordinary",
-              "realtime"
-            ],
-            "example": "ordinary"
-          },
-          "cron": {
-            "type": "string",
-            "description": "A cron string describing the interval at which this flow is run. If unset, the flow uses webhooks instead",
-            "example": "* /2 * * * *"
-          },
-          "owners":{
-            "type": "array",
-            "items":{
-              "$ref": "#/components/schemas/Owner"
-            }
-          }
-        }
-      },
-      "FlowTemplate": {
+      "TagsGroup": {
         "allOf": [
-          {
-            "$ref": "#/components/schemas/MutableFlowTemplate"
-          },
           {
             "type": "object",
             "required": [
-              "id",
-              "createdAt",
-              "updatedAt"
+              "name",
+              "slug"
             ],
             "properties": {
               "id": {
                 "type": "string"
               },
-              "status": {
+              "name": {
                 "type": "string",
-                "description": "Flow status, set automatically in response to start/stop commands",
+                "maxLength": 50
+              },
+              "slug": {
+                "type": "string",
+                "maxLength": 30
+              },
+              "level": {
+                "type": "string",
                 "enum": [
-                  "published",
-                  "draft"
+                  "system-level",
+                  "tenant-level"
                 ],
-                "example": "draft"
+                "example": "system-level"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "simple",
+                  "rich"
+                ],
+                "example": "simple"
               },
               "createdAt": {
                 "type": "string",
-                "description": "Timestamp of flow creation",
+                "description": "Timestamp of tagsGroup creation",
                 "format": "date-time",
                 "example": "2019-07-30T12:52:45.957Z"
               },
               "updatedAt": {
                 "type": "string",
-                "description": "Timestamp of most recent flow update",
+                "description": "Timestamp of most recent tagsGroup update",
                 "format": "date-time",
                 "example": "2019-07-30T12:52:45.957Z"
               }
@@ -765,106 +571,86 @@
           }
         ]
       },
-      "FlowGraph": {
-        "type": "object",
-        "properties": {
-          "nodes": {
-            "type": "array",
-            "description": "An array of all components involved in this flow",
-            "items": {
-              "type": "object",
-              "required": [
-                "id",
-                "command"
-              ],
-              "example": [
-                {
-                  "id": "step_1",
-                  "componentId": "string",
-                  "name": "snazzy adapter for oih",
-                  "function": "getPersonsPolling",
-                  "description": "New description in progress"
-                },
-                {
-                  "id": "step_2",
-                  "componentId": "string",
-                  "name": "code_component",
-                  "function": "execute",
-                  "description": "",
-                  "fields": {
-                      "code": "function* run() {console.log('Calling external URL');yield request.post({uri: 'http://webhook.site/debc8244-3ca0-4449-af2b-e346c4f57b85', body: msg.body, json: true});}"
-                  }
+      "Tag": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": [
+              "name",
+              "tagsGroupId"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 50
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "logo": {
+                "type": "string"
+              },
+              "owners": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Owner"
                 }
-              ],
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "description": "ID of this node, which will be referenced by edges"
-                },
-                "componentId": {
-                  "type": "string",
-                  "description": "The component repository id of the component (e.g. adapter/transformer) to be used in this step."
-                },
-                "credentials_id": {
-                  "type": "string",
-                  "description": "A secret service id of a secret containing credentials for this node."
-                },
-                "function": {
-                  "type": "string",
-                  "description": "The function that the component will be executing."
-                },
-                "name": {
-                  "type": "string",
-                  "description": "Descriptive name of this node"
-                },
-                "description": {
-                  "type": "string"
-                },
-                "fields": {
-                  "type": "object",
-                  "description": "Optional arguments passed on to the component"
-                }
-              }
-            }
-          },
-          "edges": {
-            "type": "array",
-            "description": "An array of edges linking nodes together, determining the order in which nodes are activated",
-            "items": {
-              "type": "object",
-              "required": [
-                "source",
-                "target"
-              ],
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "config": {
-                  "type": "object",
-                  "properties": {
-                    "condition": {
-                      "type": "string"
-                    },
-                    "mapper": {
-                      "type": "object"
-                    }
-                  }
-                },
-                "source": {
-                  "type": "string",
-                  "description": "The source node of this edge, referring to the id field of a node",
-                  "example": "step_1"
-                },
-                "target": {
-                  "type": "string",
-                  "description": "The target node of this edge, referring to the id field of a node",
-                  "example": "step_2"
-                }
+              },
+              "isSystemTag": {
+                "type": "boolean",
+                "description": "This field could be use to define system tags and allow all users to get them"
+              },
+              "taggedObjectsCount": {
+                "type": "number"
+              },
+              "createdAt": {
+                "type": "string",
+                "description": "Timestamp of tag creation",
+                "format": "date-time",
+                "example": "2019-07-30T12:52:45.957Z"
+              },
+              "updatedAt": {
+                "type": "string",
+                "description": "Timestamp of most recent tag update",
+                "format": "date-time",
+                "example": "2019-07-30T12:52:45.957Z"
               }
             }
           }
-        }
+        ]
+      },
+      "TaggedObject": {
+        "allOf": [
+          {
+            "type": "object",
+            "required": [
+              "tagId",
+              "objectId",
+              "tagsGroupId"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "tagId": {
+                "type": "string",
+                "description": "Id from Tag schema"
+              },
+              "objectId": {
+                "type": "string",
+                "description": "Id for the object that you want to tag. (templates, components...)"
+              },
+              "tagsGroupId": {
+                "type": "string",
+                "description": "Id from TagsGroup schema"
+              }
+            }
+          }
+        ]
       },
       "Meta": {
         "type": "object",
@@ -888,22 +674,44 @@
         }
       },
       "Owner": {
-		    "type": "object",
-		    "required": [
-			    "id",
-			    "type"
-		    ],
-		    "properties": {
-			    "id": {
-				    "type": "string",
-				    "description": "External id of the owner"
-			    },
-			    "type": {
-				    "type": "string",
-				    "description": "Type to discriminate between user or tenant"
-			    }
-		    }
-	    }
+        "type": "object",
+        "required": [
+          "id",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "External id of the owner"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type to discriminate between user or tenant"
+          }
+        }
+      },
+      "TaggedObjectResponse": {
+        "type": "object",
+        "properties": {
+          "tagsIds": {
+            "type": "string",
+            "description": "Tags ids"
+          },
+          "objectId": {
+            "type": "string",
+            "description": "Object id"
+          }
+        }
+      },
+      "UpserTaggedObjectResponse": {
+        "type": "object",
+        "properties": {
+          "processed": {
+            "type": "number",
+            "description": "Number of upserted tagged objects"
+          }
+        }
+      }
     }
   }
 }

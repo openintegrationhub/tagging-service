@@ -13,7 +13,7 @@ const mainServer = new Server();
     mainServer.setupCors();
     mainServer.setupMiddleware();
     mainServer.setupRoutes();
-    // mainServer.setupSwagger();
+    mainServer.setupSwagger();
     mainServer.setupQueue();
 
     if (!module.parent) {

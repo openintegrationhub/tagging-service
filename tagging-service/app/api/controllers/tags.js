@@ -129,7 +129,7 @@ router.patch(
       }
 
       const result = await storage.updateTag(req.user, id, updatedTag);
-      res.status(200).send(result);
+      res.status(200).send({ data: result });
     } catch (e) {
       log.error(e);
       if (!res.headersSent) {
