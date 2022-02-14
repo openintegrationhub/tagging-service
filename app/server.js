@@ -126,8 +126,6 @@ class Server {
     const options = {
       keepAlive: 1,
       connectTimeoutMS: 30000,
-      reconnectInterval: 1000,
-      reconnectTries: Number.MAX_VALUE,
       useNewUrlParser: true,
     }; //
 
