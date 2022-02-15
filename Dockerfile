@@ -14,7 +14,7 @@ COPY app services/tagging-service/app
 # but node-gyp requires in build time python, build-essential, ....
 # that's not required in runtime
 FROM base AS dependencies
-RUN apk add --no-cache make gcc g++ python
+RUN apk add --no-cache make gcc g++ python3
 RUN yarn install --production
 
 FROM base AS release
