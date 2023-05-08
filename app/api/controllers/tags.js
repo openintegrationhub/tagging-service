@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 const express = require('express');
 const bodyParser = require('body-parser');
+const asyncHandler = require('express-async-handler');
 const { can } = require('@openintegrationhub/iam-utils');
 const config = require('../../config/index');
 const { validate } = require('../../utils/validator');
 const TaggedObject = require('../../models/taggedObject');
 const Tag = require('../../models/tag');
+const TagGroup = require('../../models/tagsGroup');
 
 // eslint-disable-next-line import/no-dynamic-require
 const storage = require(`./${config.storage}`);
@@ -18,22 +20,27 @@ const router = express.Router();
 
 const log = require('../../config/logger');
 
-router.use('/:tagsGroupSlug', async (req, res, next) => {
+const loadTagGroupSync = async (req, res, next) => {
   const { tagsGroupSlug } = req.params;
   const tagsGroup = await storage.getTagsGroupBySlug(tagsGroupSlug);
   if (tagsGroup) {
     req.tagsGroup = tagsGroup;
     next();
   } else {
-    res.status(404).send({ errors: [{ code: 404, message: 'No slug found' }] });
+    return res
+      .status(404)
+      .send({ errors: [{ code: 404, message: 'No slug found' }] });
   }
-});
+};
+
+const loadTagGroup = asyncHandler(loadTagGroupSync);
 
 // Gets all tags from a tagsGroup
 router.get(
   '/:tagsGroupSlug',
   jsonParser,
   can(config.taggingReadPermission),
+  loadTagGroup,
   async (req, res) => {
     const { query, tagsGroup, user } = req;
     const hasTaggedObjects = query.hasTaggedObjects === 'true';
@@ -48,33 +55,21 @@ router.post(
   jsonParser,
   can(config.taggingWritePermission),
   async (req, res) => {
-    const newTag = req.body;
+    const newTagGroup = req.body;
+    const { tagsGroupSlug } = req.params;
 
-    // Automatically adds the current user as an owner, if not already included.
-    if (!newTag.owners) {
-      newTag.owners = [];
-    }
-    if (newTag.owners.findIndex((o) => o.id === req.user.sub) === -1) {
-      newTag.owners.push({ id: req.user.sub, type: 'user' });
-      // just for admins that couldn't have the tenant field
-      if (req.user.tenant) {
-        newTag.owners.push({ id: req.user.tenant, type: 'tenant' });
-      }
-    }
-    const tagsGroupId = req.tagsGroup.id;
-
-    const storeTag = new Tag({
-      ...newTag,
-      tagsGroupId,
+    const storedTagGroup = new TagGroup({
+      ...newTagGroup,
+      slug: tagsGroupSlug,
     });
-    const errors = validate(storeTag);
+    const errors = validate(storedTagGroup);
 
     if (errors && errors.length > 0) {
       return res.status(400).send({ errors });
     }
 
     try {
-      const response = await storage.addTag(storeTag);
+      const response = await storage.addTagGroup(storedTagGroup);
 
       return res.status(201).send({ data: response, meta: {} });
     } catch (err) {
@@ -89,6 +84,7 @@ router.patch(
   '/:tagsGroupSlug/:id',
   jsonParser,
   can(config.taggingWritePermission),
+  loadTagGroup,
   async (req, res) => {
     const { id } = req.params;
 
@@ -143,6 +139,7 @@ router.delete(
   '/:tagsGroupSlug/:id',
   jsonParser,
   can(config.taggingWritePermission),
+  loadTagGroup,
   async (req, res) => {
     const { id } = req.params;
     const tagsGroupId = req.tagsGroup.id;
@@ -177,6 +174,7 @@ router.get(
   '/:tagsGroupSlug/taggedObjects',
   jsonParser,
   can(config.taggingReadPermission),
+  loadTagGroup,
   async (req, res) => {
     const { tagsGroup } = req;
     const { objectId } = req.query;
@@ -214,6 +212,7 @@ router.post(
   '/:tagsGroupSlug/upsertTaggedObjects',
   jsonParser,
   can(config.taggingWritePermission),
+  loadTagGroup,
   async (req, res) => {
     const { user } = req;
     const params = req.body;
