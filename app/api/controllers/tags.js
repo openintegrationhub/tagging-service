@@ -49,7 +49,7 @@ router.get(
   },
 );
 
-// Create a new
+// Create a new tag group
 router.post(
   '/:tagsGroupSlug',
   jsonParser,
@@ -70,6 +70,49 @@ router.post(
 
     try {
       const response = await storage.addTagGroup(storedTagGroup);
+
+      return res.status(201).send({ data: response, meta: {} });
+    } catch (err) {
+      log.error(err);
+      return res.status(500).send({ errors: [{ message: err }] });
+    }
+  },
+);
+
+// create new tag
+router.post(
+  '/:tagsGroupSlug/tag',
+  jsonParser,
+  can(config.taggingWritePermission),
+  loadTagGroup,
+  async (req, res) => {
+    const newTag = req.body;
+
+    // Automatically adds the current user as an owner, if not already included.
+    if (!newTag.owners) {
+      newTag.owners = [];
+    }
+    if (newTag.owners.findIndex((o) => o.id === req.user.sub) === -1) {
+      newTag.owners.push({ id: req.user.sub, type: 'user' });
+      // just for admins that couldn't have the tenant field
+      if (req.user.tenant) {
+        newTag.owners.push({ id: req.user.tenant, type: 'tenant' });
+      }
+    }
+    const tagsGroupId = req.tagsGroup.id;
+
+    const storeTag = new Tag({
+      ...newTag,
+      tagsGroupId,
+    });
+    const errors = validate(storeTag);
+
+    if (errors && errors.length > 0) {
+      return res.status(400).send({ errors });
+    }
+
+    try {
+      const response = await storage.addTag(storeTag);
 
       return res.status(201).send({ data: response, meta: {} });
     } catch (err) {
