@@ -217,6 +217,19 @@ const addTag = (storeTag) =>
       });
   });
 
+const addTagGroup = (tagGroup) =>
+  new Promise((resolve) => {
+    tagGroup
+      .save()
+      .then((doc) => {
+        const tagGroup = format(doc._doc);
+        resolve(tagGroup);
+      })
+      .catch((err) => {
+        log.error(err);
+      });
+  });
+
 const getOneTag = async (user, id) => {
   const query = buildQuery(user, id);
   const tag = await Tag.findOne(query).lean();
@@ -262,6 +275,7 @@ module.exports = {
   validateTagsIds,
   upsertTaggedObjects,
   addTag,
+  addTagGroup,
   removeTagsFromObject,
   deleteTagWithTaggedObjects,
   updateTag,
